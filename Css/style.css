@@ -1,4 +1,16 @@
+
+/* Apply styles to the canvas element */
+
 #canvas {
     border: 1px solid #000;
     text-align: center;
+    background-color: rgb(115, 115, 117);
   }
+  
+  /* Apply styles to the images */
+  #canvas img {
+    border: 1px solid #000;
+    border-radius: 50%;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  

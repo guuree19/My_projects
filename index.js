@@ -6,7 +6,7 @@ canvas.height = 600;
 // Get the 2D drawing context
 const ctx = canvas.getContext('2d');
 
-// Define the images' sources
+// Define the images' sources and initial positions
 const imageSources = [
   { src: 'Images/img.png', x: 50, y: 50 },
   { src: 'Images/img1.png', x: 200, y: 50 },
@@ -17,11 +17,13 @@ const imageSources = [
   { src: 'Images/img6.png', x: 50, y: 200 }
 ];
 
-
-// Load the images
+// Store the image objects and their positions
 const images = [];
+
+// Flag to track if all images are loaded
 let loadedImages = 0;
 
+// Load the images
 function loadImages(callback) {
   for (let i = 0; i < imageSources.length; i++) {
     const img = new Image();
@@ -36,67 +38,67 @@ function loadImages(callback) {
       console.log(`Error loading image: ${imageSources[i].src}`);
     };
 
-    images.push(img);
+    // Store the image object along with its position
+    images.push({ img, x: imageSources[i].x, y: imageSources[i].y });
   }
 }
 
 // Draw the images on the canvas
 function drawImages() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
   for (let i = 0; i < images.length; i++) {
-    ctx.drawImage(images[i], 0, 0); // Adjust the coordinates as needed
+    const { img, x, y } = images[i];
+    ctx.drawImage(img, x, y); // Draw the image at its position
   }
 }
 
+// Track the currently selected image for dragging
+let selectedImage = null;
+let offsetX = 0;
+let offsetY = 0;
+
 // Add event listeners for interactions
-canvas.addEventListener('click', handleCanvasClick);
+canvas.addEventListener('mousedown', handleCanvasMouseDown);
+canvas.addEventListener('mouseup', handleCanvasMouseUp);
 canvas.addEventListener('mousemove', handleCanvasMouseMove);
 
-function handleCanvasClick(event) {
-  // Handle click event
+function handleCanvasMouseDown(event) {
   const x = event.offsetX;
   const y = event.offsetY;
-  // Perform actions based on the clicked position within the canvas
-  if (x < 100 && y < 100) {
-    // Perform action 1 for the top-left region of the canvas
-    console.log("Action 1");
-  } else if (x >= 100 && y < 100) {
-    // Perform action 2 for the top-right region of the canvas
-    console.log("Action 2");
-  } else if (x < 100 && y >= 100) {
-    // Perform action 3 for the bottom-left region of the canvas
-    console.log("Action 3");
-  } else {
-    // Perform action 4 for the remaining region of the canvas
-    console.log("Action 4");
+
+  // Check if any image is clicked
+  for (let i = images.length - 1; i >= 0; i--) {
+    const { x: imgX, y: imgY } = images[i];
+
+    // Check if the mouse click is within the image bounds
+    if (x >= imgX && x < imgX + images[i].img.width && y >= imgY && y < imgY + images[i].img.height) {
+      selectedImage = images[i];
+      offsetX = x - selectedImage.x;
+      offsetY = y - selectedImage.y;
+      break;
+    }
   }
+}
+
+function handleCanvasMouseUp(event) {
+  selectedImage = null;
 }
 
 function handleCanvasMouseMove(event) {
-  // Handle mouse move event
-  const x = event.offsetX;
-  const y = event.offsetY;
-  // Perform actions based on the mouse position within the canvas
+  if (selectedImage) {
+    const x = event.offsetX;
+    const y = event.offsetY;
 
-  if (isWithinRegion(x, y, 0, 0, 100, 100)) {
-    // Perform action when the mouse is within a specific region (e.g., top-left)
-    console.log("Mouse is in the top-left region");
-  } else if (isWithinRegion(x, y, 100, 0, 200, 100)) {
-    // Perform action when the mouse is within another specific region (e.g., top-right)
-    console.log("Mouse is in the top-right region");
-  } else if (isWithinRegion(x, y, 0, 100, 100, 200)) {
-    // Perform action when the mouse is within yet another specific region (e.g., bottom-left)
-    console.log("Mouse is in the bottom-left region");
-  } else {
-    // Perform a default action when the mouse is in other regions
-    console.log("Mouse is in a different region");
+    // Update the position of the selected image based on mouse movement
+    selectedImage.x = x - offsetX;
+   
+    selectedImage.y = y - offsetY;
+
+    // Redraw the images on the canvas
+    drawImages();
   }
 }
-
-// Helper function to check if the given coordinates are within a specified region
-function isWithinRegion(x, y, regionX, regionY, regionWidth, regionHeight) {
-  return x >= regionX && x < regionX + regionWidth && y >= regionY && y < regionY + regionHeight;
-}
-
 
 // Add the canvas to the document body
 document.body.appendChild(canvas);
